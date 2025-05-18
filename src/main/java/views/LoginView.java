@@ -1,5 +1,7 @@
 package views;
 
+import controllers.LoginManager;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -63,10 +65,14 @@ public class LoginView extends JFrame {
 
     private void attemptLogin() {
         String username = usernameField.getText();
-        char[] password = passwordField.getPassword();
+        String password = String.copyValueOf(passwordField.getPassword());
 
-        // TODO: Add authentication logic
-        System.out.println("Attempting login with: " + username);
+        System.out.println("Attempting login with: " + username + " and " + password);
+        Boolean checkAuth = new LoginManager().login(username, password);
+        if (!checkAuth) {
+            JOptionPane.showMessageDialog(this.rootPane, "Invalid login. Please try again.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         usernameField.setText("");
         passwordField.setText("");
         dispose(); // Close login window
