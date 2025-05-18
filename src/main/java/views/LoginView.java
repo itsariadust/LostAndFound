@@ -68,15 +68,23 @@ public class LoginView extends JFrame {
         String password = String.copyValueOf(passwordField.getPassword());
 
         System.out.println("Attempting login with: " + username + " and " + password);
+        if (username.isEmpty() || password.isEmpty()) {
+            invalidLoginDialog();
+            return;
+        }
         Boolean checkAuth = new LoginManager().login(username, password);
         if (!checkAuth) {
-            JOptionPane.showMessageDialog(this.rootPane, "Invalid login. Please try again.", "Warning", JOptionPane.WARNING_MESSAGE);
+            invalidLoginDialog();
             return;
         }
         usernameField.setText("");
         passwordField.setText("");
         dispose(); // Close login window
         new MainView().setVisible(true); // Open main view
+    }
+
+    private void invalidLoginDialog() {
+        JOptionPane.showMessageDialog(this.rootPane, "Invalid login. Please try again.", "Warning", JOptionPane.WARNING_MESSAGE);
     }
 
     public static void main(String[] args) {
