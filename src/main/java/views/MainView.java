@@ -14,6 +14,11 @@ public class MainView extends JFrame {
     private JButton deleteButton;
     private JButton printButton;
 
+    // Information Panels
+    private JPanel lostItemsDetailsPanel;
+    private JPanel claimsDetailsPanel;
+    private JPanel currentDetailsPanel;
+
     public MainView() {
         /*
             Window Settings
@@ -167,22 +172,17 @@ public class MainView extends JFrame {
         /*
             Split Pane
          */
+        initializeDetailsPanels(); // Initialize panels depending on tab
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setDividerLocation(600); // Initial divider position
-        splitPane.setResizeWeight(0.8); // 70% space for tabbed pane, 30% for details
+        splitPane.setDividerLocation(1280); // Initial divider position
+        splitPane.setResizeWeight(0.8); // 80% space for tabbed pane, 30% for details
 
         // Add your existing tabbed pane to the left
         splitPane.setLeftComponent(tabbedPane);
 
-        // Create the details panel for the right side
-        JPanel detailsPanel = new JPanel();
-        detailsPanel.setBorder(BorderFactory.createTitledBorder("Record Details"));
-        detailsPanel.setPreferredSize(new Dimension(300, 0)); // Initial width
-
         // Add the details panel to the right of the split pane
-        splitPane.setRightComponent(detailsPanel);
+        splitPane.setRightComponent(currentDetailsPanel);
 
-        // Replace your existing mainPanel.add(tabbedPane) with:
         // Add split pane with tabbed pane and details panel (position 3)
         gbc.gridy = 3;  // Now this is below both toolbars (y=1 and y=2)
         gbc.weightx = 1.0;
@@ -208,18 +208,39 @@ public class MainView extends JFrame {
          */
 
         //
+
+        // Logout listener
         logoutButton.addActionListener(e -> {
             dispose();
             new LoginView().setVisible(true);
         });
 
+        // Tabbed pane listener
         tabbedPane.addChangeListener(e -> {
-            updateButtonActions(tabbedPane.getSelectedIndex());
+            int selectedIndex = tabbedPane.getSelectedIndex();
+            updateButtonActions(selectedIndex);
+
+            // Remove current panel
+            splitPane.remove(currentDetailsPanel);
+
+            // Switch to appropriate panel
+            if (selectedIndex == 0) { // Lost Items
+                currentDetailsPanel = lostItemsDetailsPanel;
+            } else { // Claims
+                currentDetailsPanel = claimsDetailsPanel;
+            }
+
+            // Add new panel and refresh
+            splitPane.setRightComponent(currentDetailsPanel);
+            splitPane.revalidate();
+            splitPane.repaint();
+
+            // Update other tab-specific components
+            updateFilterOptions(selectedIndex);
+            updateButtonActions(selectedIndex);
         });
 
-        // Call this initially to set up first tab's actions
-        updateButtonActions(tabbedPane.getSelectedIndex());
-
+        // Filter button listener
         filterButton.addActionListener(e -> {
             String selectedFilter = (String) filterCombo.getSelectedItem();
             int selectedTab = tabbedPane.getSelectedIndex();
@@ -230,6 +251,9 @@ public class MainView extends JFrame {
                 filterClaims(selectedFilter);
             }
         });
+
+        // Call this initially to set up first tab's actions
+        updateButtonActions(tabbedPane.getSelectedIndex());
     }
 
     private void updateFilterOptions(int selectedTabIndex) {
@@ -293,46 +317,83 @@ public class MainView extends JFrame {
         }
     }
 
+    private void initializeDetailsPanels() {
+        // Panel for Lost Items
+        lostItemsDetailsPanel = new JPanel(new GridBagLayout());
+        lostItemsDetailsPanel.setBorder(BorderFactory.createTitledBorder("Item Details"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        String[] lostItemsLabels = {"Item Name", "Description", "Category", "Location", "Date Found", "Status"};
+        buildFields(gbc, lostItemsLabels, lostItemsDetailsPanel);
+
+        // Panel for Claims
+        claimsDetailsPanel = new JPanel(new GridBagLayout());
+        claimsDetailsPanel.setBorder(BorderFactory.createTitledBorder("Claim Details"));
+
+        String[] claimsLabels = {"Claimant Name", "Item Claimed", "Claim Date", "Status"};
+        buildFields(gbc, claimsLabels, claimsDetailsPanel);
+
+        // Set initial panel
+        currentDetailsPanel = lostItemsDetailsPanel;
+    }
+
+    private void buildFields(GridBagConstraints gbc, String[] lostItemsLabels, JPanel lostItemsDetailsPanel) {
+        for (String lostItemsLabel : lostItemsLabels) {
+            gbc.gridx = 0;
+            gbc.weightx = 0.3;
+            lostItemsDetailsPanel.add(new JLabel(lostItemsLabel), gbc);
+
+            gbc.gridx = 1;
+            gbc.weightx = 0.7;
+            JTextField tf = new JTextField(15);
+            tf.setEditable(false);
+            tf.setFocusable(false);
+            lostItemsDetailsPanel.add(tf, gbc);
+        }
+    }
+
     // Lost Items tab actions
     private void addLostItem() {
         System.out.println("Adding new lost item");
-        // Your implementation here
+        // Todo: implementation here
     }
 
     private void editLostItem() {
         System.out.println("Editing lost item");
-        // Your implementation here
+        // Todo: implementation here
     }
 
     private void deleteLostItem() {
         System.out.println("Editing lost item");
-        // Your implementation here
+        // Todo: implementation here
     }
 
     private void printLostItemsReport() {
         System.out.println("Editing lost item");
-        // Your implementation here
+        // Todo: implementation here
     }
 
     // Claims tab actions
     private void addClaim() {
         System.out.println("Adding new claim");
-        // Your implementation here
+        // Todo: implementation here
     }
 
     private void editClaim() {
         System.out.println("Editing claim");
-        // Your implementation here
+        // Todo: implementation here
     }
 
     private void deleteClaim() {
         System.out.println("Editing claim");
-        // Your implementation here
+        // Todo: implementation here
     }
 
     private void printClaimsReport() {
         System.out.println("Editing claim");
-        // Your implementation here
+        // Todo: implementation here
     }
 
     private void filterLostItems(String filter) {
