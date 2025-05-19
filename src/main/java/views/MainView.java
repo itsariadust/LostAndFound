@@ -24,7 +24,7 @@ public class MainView extends JFrame {
     private JPanel claimsDetailsPanel;
     private JPanel currentDetailsPanel;
 
-    public MainView() {
+    public MainView(String userName) {
         /*
             Window Settings
          */
@@ -58,7 +58,7 @@ public class MainView extends JFrame {
 
         // User panel with logout button
         JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        userPanel.add(new JLabel("Welcome"));
+        userPanel.add(new JLabel("Welcome, " + userName));
         JButton logoutButton = new JButton("Logout");
         userPanel.add(logoutButton);
 
@@ -475,12 +475,5 @@ public class MainView extends JFrame {
     private void filterClaims(String filter) {
         System.out.println("Filtering Claims by: " + filter);
         // Todo: filter out claims
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            MainView ui = new MainView();
-            ui.setVisible(true);
-        });
     }
 }
