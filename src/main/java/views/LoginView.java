@@ -64,6 +64,9 @@ public class LoginView extends JFrame {
         add(mainPanel);
 
         // Event listeners
+        passwordField.addActionListener(e -> {
+            loginButton.doClick();
+        });
         exitButton.addActionListener(e -> System.exit(0));
         loginButton.addActionListener(e -> attemptLogin());
     }
