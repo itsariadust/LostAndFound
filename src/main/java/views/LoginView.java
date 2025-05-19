@@ -1,7 +1,7 @@
 package views;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import controllers.LoginManager;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -10,6 +10,11 @@ public class LoginView extends JFrame {
     private final JPasswordField passwordField;
 
     public LoginView() {
+        try {
+            UIManager.setLookAndFeel( new FlatDarkLaf() );
+        } catch( Exception ex ) {
+            System.err.println( "Failed to initialize LaF" );
+        }
         setTitle("Lost and Found System - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(400, 280);
