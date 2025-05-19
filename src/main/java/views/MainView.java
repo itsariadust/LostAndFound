@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 public class MainView extends JFrame {
+    // Components
     private JTable itemsTable;
     private JTable claimsTable;
     private JTabbedPane tabbedPane;
@@ -13,6 +14,10 @@ public class MainView extends JFrame {
     private JButton editButton;
     private JButton deleteButton;
     private JButton printButton;
+    private JButton saveItemButton;
+    private JButton saveClaimButton;
+    private JButton cancelItemEditButton;
+    private JButton cancelClaimEditButton;
 
     // Information Panels
     private JPanel lostItemsDetailsPanel;
@@ -218,7 +223,6 @@ public class MainView extends JFrame {
         // Tabbed pane listener
         tabbedPane.addChangeListener(e -> {
             int selectedIndex = tabbedPane.getSelectedIndex();
-            updateButtonActions(selectedIndex);
 
             // Remove current panel
             splitPane.remove(currentDetailsPanel);
@@ -238,6 +242,16 @@ public class MainView extends JFrame {
             // Update other tab-specific components
             updateFilterOptions(selectedIndex);
             updateButtonActions(selectedIndex);
+        });
+
+        cancelItemEditButton.addActionListener(e -> {
+            saveItemButton.setVisible(false);
+            cancelItemEditButton.setVisible(false);
+        });
+
+        cancelClaimEditButton.addActionListener(e -> {
+            saveClaimButton.setVisible(false);
+            cancelClaimEditButton.setVisible(false);
         });
 
         // Filter button listener
@@ -280,13 +294,21 @@ public class MainView extends JFrame {
 
         if (selectedTabIndex == 0) { // Lost Items tab
             addButton.addActionListener(e -> addLostItem());
-            editButton.addActionListener(e -> editLostItem());
+            editButton.addActionListener(e -> {
+                saveItemButton.setVisible(true);
+                cancelItemEditButton.setVisible(true);
+                editLostItem();
+            });
             deleteButton.addActionListener(e -> deleteLostItem());
             printButton.addActionListener(e -> printLostItemsReport());
         }
         else if (selectedTabIndex == 1) { // Claims tab
             addButton.addActionListener(e -> addClaim());
-            editButton.addActionListener(e -> editClaim());
+            editButton.addActionListener(e -> {
+                saveClaimButton.setVisible(true);
+                cancelClaimEditButton.setVisible(true);
+                editClaim();
+            });
             deleteButton.addActionListener(e -> deleteClaim());
             printButton.addActionListener(e -> printClaimsReport());
         }
@@ -318,25 +340,74 @@ public class MainView extends JFrame {
     }
 
     private void initializeDetailsPanels() {
-        // Panel for Lost Items
+        /*
+            Panel for Lost Items
+         */
         lostItemsDetailsPanel = new JPanel(new GridBagLayout());
         lostItemsDetailsPanel.setBorder(BorderFactory.createTitledBorder("Item Details"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        GridBagConstraints itemsGbc = new GridBagConstraints();
+        itemsGbc.insets = new Insets(5, 5, 5, 5);
+        itemsGbc.fill = GridBagConstraints.HORIZONTAL;
+        itemsGbc.anchor = GridBagConstraints.NORTHWEST; // Align content to top-left
 
+        // Create content panel for fields
+        JPanel lostItemsContent = new JPanel(new GridBagLayout());
         String[] lostItemsLabels = {"Item Name", "Description", "Category", "Location", "Date Found", "Status"};
-        buildFields(gbc, lostItemsLabels, lostItemsDetailsPanel);
+        addContentToPanels(itemsGbc, lostItemsLabels, lostItemsContent, lostItemsDetailsPanel, true);
 
-        // Panel for Claims
+        /*
+            Panel for Claims
+         */
         claimsDetailsPanel = new JPanel(new GridBagLayout());
         claimsDetailsPanel.setBorder(BorderFactory.createTitledBorder("Claim Details"));
+        GridBagConstraints claimsGbc = new GridBagConstraints();
+        claimsGbc.insets = new Insets(5, 5, 5, 5);
+        claimsGbc.fill = GridBagConstraints.HORIZONTAL;
+        claimsGbc.anchor = GridBagConstraints.NORTHWEST; // Align content to top-left
 
+        // Create content panel for fields
+        JPanel claimsContent = new JPanel(new GridBagLayout());
         String[] claimsLabels = {"Claimant Name", "Item Claimed", "Claim Date", "Status"};
-        buildFields(gbc, claimsLabels, claimsDetailsPanel);
+        addContentToPanels(claimsGbc, claimsLabels, claimsContent, claimsDetailsPanel, false);
 
         // Set initial panel
         currentDetailsPanel = lostItemsDetailsPanel;
+    }
+
+    private void addContentToPanels(GridBagConstraints gbc, String[] labels, JPanel content,
+                                    JPanel panel, boolean isLostItemsPanel) {
+        // Build fields
+        buildFields(gbc, labels, content);
+
+        // Add content to main panel
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weighty = 1;
+        panel.add(content, gbc);
+
+        // Add save button at bottom
+        JButton saveButton = new JButton("Save");
+        saveButton.setVisible(false);
+        gbc.gridy = 1;
+        gbc.weighty = 0;
+        gbc.anchor = GridBagConstraints.PAGE_END;
+        panel.add(saveButton, gbc);
+
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setVisible(false);
+        gbc.gridy = 2;
+        gbc.weighty = 0;
+        gbc.anchor = GridBagConstraints.PAGE_END;
+        panel.add(cancelButton, gbc);
+
+        // Store reference to the correct button
+        if (isLostItemsPanel) {
+            this.saveItemButton = saveButton;
+            this.cancelItemEditButton = cancelButton;
+        } else {
+            this.saveClaimButton = saveButton;
+            this.cancelClaimEditButton = cancelButton;
+        }
     }
 
     private void buildFields(GridBagConstraints gbc, String[] lostItemsLabels, JPanel lostItemsDetailsPanel) {
