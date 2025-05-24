@@ -88,7 +88,7 @@ public class LoginView extends JFrame {
         usernameField.setText("");
         passwordField.setText("");
         dispose(); // Close login window
-        new MainView().setVisible(true); // Open main view
+        new MainView(username).setVisible(true); // Open main view
     }
 
     private void invalidLoginDialog() {
