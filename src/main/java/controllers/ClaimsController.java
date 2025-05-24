@@ -1,6 +1,7 @@
 package controllers;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import models.ClaimWithItemName;
 import models.Claims;
 import models.dao.ClaimsDao;
 import org.jdbi.v3.core.Jdbi;
@@ -54,5 +55,9 @@ public class ClaimsController {
 
     public static List<Claims> getAllClaims() {
         return claimsDao.findAll();
+    }
+
+    public static List<ClaimWithItemName> getAllClaimsWithItemName() {
+        return claimsDao.getAllClaimsWithItemNames();
     }
 }

@@ -10,6 +10,7 @@ import java.util.Map;
 
 import controllers.LostItemController;
 import controllers.ClaimsController;
+import models.ClaimWithItemName;
 import models.Claims;
 import models.LostItems;
 import models.TableModel.ClaimsTableModel;
@@ -304,8 +305,8 @@ public class MainView extends JFrame {
                 List<LostItems> fileredItemsList = LostItemController.filterLostItems(searchField.getText(), selectedFilter);
                 lostItemsTableModel.setData(fileredItemsList);
             } else if (selectedTab == 1) { // Claims tab
-                List<Claims> filteredClaimsList = ClaimsController.filterClaims(searchField.getText(), selectedFilter);
-                claimsTableModel.setData(filteredClaimsList);
+                List<ClaimWithItemName> claims = ClaimsController.getAllClaimsWithItemName();
+                claimsTableModel.setData(claims);
             }
         });
 
@@ -317,7 +318,7 @@ public class MainView extends JFrame {
 
         // Set data for the tables
         lostItemsTableModel.setData(LostItemController.getAllLostItems());
-        claimsTableModel.setData(ClaimsController.getAllClaims());
+        claimsTableModel.setData(ClaimsController.getAllClaimsWithItemName());
     }
 
     private void updateFilterOptions(int selectedTabIndex) {

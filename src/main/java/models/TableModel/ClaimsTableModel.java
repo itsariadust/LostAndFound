@@ -1,5 +1,6 @@
 package models.TableModel;
 
+import models.ClaimWithItemName;
 import models.Claims;
 
 import javax.swing.table.AbstractTableModel;
@@ -9,9 +10,9 @@ import java.util.List;
 public class ClaimsTableModel extends AbstractTableModel {
     private final String[] columns = { "Claim Number", "Claimant Name", "Item Claimed", "Claimant Contact",
             "Claim Date", "Status"};
-    private List<Claims> data = new ArrayList<>();
+    private List<ClaimWithItemName> data = new ArrayList<>();
 
-    public void setData(List<Claims> newData) {
+    public void setData(List<ClaimWithItemName> newData) {
         this.data = newData;
         fireTableDataChanged(); // Notify JTable to refresh
     }
@@ -33,11 +34,11 @@ public class ClaimsTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int row, int col) {
-        Claims record = data.get(row);
+        ClaimWithItemName record = data.get(row);
         return switch (col) {
             case 0 -> record.getClaimId();
             case 1 -> record.getClaimantName();
-            case 2 -> record.getItemId();
+            case 2 -> record.getItemName();
             case 3 -> record.getClaimantContact();
             case 4 -> record.getClaimDate();
             case 5 -> record.getStatus();
