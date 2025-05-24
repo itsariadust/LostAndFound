@@ -2,17 +2,18 @@ package controllers;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import models.LostItems;
-import models.LostItemsDao;
+import models.dao.LostItemsDao;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.mapper.reflect.BeanMapper;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
 public class LostItemController {
-    private static LostItemsDao lostItemsDao;
+    static LostItemsDao lostItemsDao;
     static Dotenv dotenv = Dotenv.configure()
             .directory("src/main/resources/.env")
             .load();
@@ -20,7 +21,7 @@ public class LostItemController {
     static String dbUser = dotenv.get("DB_USERNAME");
     static String dbPass = dotenv.get("DB_PASSWORD");
 
-    public LostItemController() {
+    static {
         Jdbi jdbi = Jdbi.create(dbUrl, dbUser, dbPass);
         jdbi.installPlugin(new SqlObjectPlugin());
         jdbi.registerRowMapper(BeanMapper.factory(LostItems.class));
@@ -30,7 +31,6 @@ public class LostItemController {
     // Lost Items tab actions
     public static boolean addLostItem(Map<String, String> itemDataMap) {
         System.out.println("Adding new lost item");
-        System.out.println(itemDataMap.values());
         if (!lostItemsDao.insert(
                 itemDataMap.get("Item Name"),
                 itemDataMap.get("Description"),
@@ -59,5 +59,11 @@ public class LostItemController {
     public static void filterLostItems(String filter) {
         System.out.println("Filtering Lost Items by: " + filter);
         // Todo: filter out lost items
+    }
+
+    public static List<LostItems> getAllLostItems() {
+        List<LostItems> lostItemsList = lostItemsDao.findAll();
+        System.out.println(lostItemsList);
+        return lostItemsList;
     }
 }

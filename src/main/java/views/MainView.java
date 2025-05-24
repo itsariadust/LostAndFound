@@ -9,7 +9,8 @@ import java.util.Map;
 
 import controllers.LostItemController;
 import controllers.ClaimsController;
-import models.LostItemsTableModel;
+import models.TableModel.ClaimsTableModel;
+import models.TableModel.LostItemsTableModel;
 
 public class MainView extends JFrame {
     // Components
@@ -53,10 +54,16 @@ public class MainView extends JFrame {
     private enum OperationMode { ADD, EDIT, VIEW }
     private OperationMode currentMode = OperationMode.VIEW;
 
-    // Table model
-    private LostItemsTableModel lostItemsTableModel;
-
     public MainView(String userName) {
+        /*
+            ----
+            Table Models
+            ----
+         */
+        // Table model
+        LostItemsTableModel lostItemsTableModel = new LostItemsTableModel();
+        ClaimsTableModel claimsTableModel = new ClaimsTableModel();
+
         /*
             ----
             Window Settings
@@ -200,12 +207,11 @@ public class MainView extends JFrame {
 
         // Lost Items tab
         JPanel lostItemsTablePanel = new JPanel(new BorderLayout());
-        itemsTable = new JTable(100, 5)  {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            };
-        };
+        itemsTable = new JTable(lostItemsTableModel);
         itemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        itemsTable.setDragEnabled(false);
+        itemsTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        itemsTable.setAutoCreateRowSorter(true);
         JScrollPane scrollLostPane = new JScrollPane(itemsTable);
         lostItemsTablePanel.add(scrollLostPane, BorderLayout.CENTER);
 
@@ -221,12 +227,11 @@ public class MainView extends JFrame {
 
         // Claims tab
         JPanel claimsTablePanel = new JPanel(new BorderLayout());
-        claimsTable = new JTable(100, 5)  {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            };
-        };
+        claimsTable = new JTable(claimsTableModel);
         claimsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        claimsTable.setDragEnabled(false);
+        claimsTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        claimsTable.setAutoCreateRowSorter(true);
         JScrollPane scrollClaimsPane = new JScrollPane(claimsTable);
         claimsTablePanel.add(scrollClaimsPane, BorderLayout.CENTER);
 
@@ -309,6 +314,9 @@ public class MainView extends JFrame {
         updateStatusOptions(0); // Update lost items status
         updateStatusOptions(1); // Update claims status
         updateButtonActions(tabbedPane.getSelectedIndex());
+
+        lostItemsTableModel.setData(LostItemController.getAllLostItems());
+        claimsTableModel.setData(ClaimsController.getAllClaims());
     }
 
     private void updateFilterOptions(int selectedTabIndex) {
