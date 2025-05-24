@@ -5,10 +5,13 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import controllers.LostItemController;
 import controllers.ClaimsController;
+import models.Claims;
+import models.LostItems;
 import models.TableModel.ClaimsTableModel;
 import models.TableModel.LostItemsTableModel;
 
@@ -19,6 +22,7 @@ public class MainView extends JFrame {
     private JMenu addMenu;
     private JMenuItem logoutMenuItem;
     private JMenuItem exitMenuItem;
+    private JTextField searchField;
     private JTable itemsTable;
     private JTable claimsTable;
     private JTabbedPane tabbedPane;
@@ -141,35 +145,29 @@ public class MainView extends JFrame {
         searchGbc.fill = GridBagConstraints.HORIZONTAL;
 
         // Search field
-        JTextField searchField = new JTextField();
+        searchField = new JTextField();
         searchGbc.gridx = 0;
         searchGbc.gridy = 0;
-        searchGbc.weightx = 0.7;
+        searchGbc.weightx = 1;
         searchToolbar.add(searchField, searchGbc);
 
-        // Search button
-        JButton searchButton = new JButton("Search");
-        searchGbc.gridx = 1;
-        searchGbc.weightx = 0.1;
-        searchToolbar.add(searchButton, searchGbc);
-
         // Status filter
-        searchGbc.gridx = 2;
+        searchGbc.gridx = 1;
         searchGbc.weightx = 0;
         searchToolbar.add(new JLabel("Status:"), searchGbc);
 
-        // Filter button
-        JButton filterButton = new JButton("Filter");
-        searchGbc.gridx = 4;
-        searchGbc.weightx = 0.1;
-        searchToolbar.add(filterButton, searchGbc);
-
         // Filter Combobox
         filterCombo = new JComboBox<>();
-        updateFilterOptions(0); // Initialize with first tab's options
-        searchGbc.gridx = 3;
+        updateFilterOptions(0);
+        searchGbc.gridx = 2;
         searchGbc.weightx = 0.1;
         searchToolbar.add(filterCombo, searchGbc);
+
+        // Filter button
+        JButton filterButton = new JButton("Filter");
+        searchGbc.gridx = 3;
+        searchGbc.weightx = 0;
+        searchToolbar.add(filterButton, searchGbc);
 
         // Add toolbar to main panel
         mainPanel.add(searchToolbar, BorderLayout.CENTER);
@@ -218,7 +216,7 @@ public class MainView extends JFrame {
         lostItemsSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         lostItemsSplitPane.setLeftComponent(lostItemsTablePanel);
         lostItemsSplitPane.setRightComponent(lostItemsDetailsPanel);
-        lostItemsSplitPane.setDividerLocation(1280);
+        lostItemsSplitPane.setDividerLocation(1600);
         lostItemsSplitPane.setResizeWeight(0.8);
 
         JPanel lostItemsTabPanel = new JPanel(new BorderLayout());
@@ -238,7 +236,7 @@ public class MainView extends JFrame {
         claimsSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         claimsSplitPane.setLeftComponent(claimsTablePanel);
         claimsSplitPane.setRightComponent(claimsDetailsPanel);
-        claimsSplitPane.setDividerLocation(1280);
+        claimsSplitPane.setDividerLocation(1600);
         claimsSplitPane.setResizeWeight(0.8);
 
         JPanel claimsTabPanel = new JPanel(new BorderLayout());
@@ -303,9 +301,11 @@ public class MainView extends JFrame {
             int selectedTab = tabbedPane.getSelectedIndex();
 
             if (selectedTab == 0) { // Lost Items tab
-                LostItemController.filterLostItems(selectedFilter);
+                List<LostItems> fileredItemsList = LostItemController.filterLostItems(searchField.getText(), selectedFilter);
+                lostItemsTableModel.setData(fileredItemsList);
             } else if (selectedTab == 1) { // Claims tab
-                ClaimsController.filterClaims(selectedFilter);
+                List<Claims> filteredClaimsList = ClaimsController.filterClaims(searchField.getText(), selectedFilter);
+                claimsTableModel.setData(filteredClaimsList);
             }
         });
 

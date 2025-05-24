@@ -56,14 +56,17 @@ public class LostItemController {
         System.out.println("Editing lost item");
     }
 
-    public static void filterLostItems(String filter) {
-        System.out.println("Filtering Lost Items by: " + filter);
-        // Todo: filter out lost items
+    public static List<LostItems> filterLostItems(String searchText, String filter) {
+        System.out.println("Filtering Lost Items by: " + searchText + " and " + filter);
+        if (searchText.isEmpty()) {
+            searchText = null;
+        } if (filter.equals("All")) {
+            filter = null;
+        }
+        return lostItemsDao.findByFilter(searchText, filter);
     }
 
     public static List<LostItems> getAllLostItems() {
-        List<LostItems> lostItemsList = lostItemsDao.findAll();
-        System.out.println(lostItemsList);
-        return lostItemsList;
+        return lostItemsDao.findAll();
     }
 }

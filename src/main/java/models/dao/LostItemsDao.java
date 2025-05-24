@@ -2,10 +2,12 @@ package models.dao;
 
 import models.LostItems;
 import org.jdbi.v3.sqlobject.customizer.Bind;
-import org.jdbi.v3.sqlobject.statement.*;
+import org.jdbi.v3.sqlobject.statement.SqlUpdate;
+import org.jdbi.v3.sqlobject.statement.SqlQuery;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 public interface LostItemsDao {
     // Insert record
@@ -32,10 +34,8 @@ public interface LostItemsDao {
     // Get by filter (status or item name)
     @SqlQuery("""
             SELECT * FROM LostItems
-            WHERE
-                (:status IS NULL OR Status = :status)
-                AND
-                (:itemName IS NULL OR ItemName = :itemName)
+            WHERE (Status LIKE '%' + :status + '%' OR :status IS NULL)
+              AND (ItemName LIKE '%' + :itemName + '%' OR :itemName IS NULL);
             """)
-    List<LostItems> findByFilter(@Bind("status") String status, @Bind("itemName") String itemName);
+    List<LostItems> findByFilter(@Bind("itemName") String itemName, @Bind("status") String status);
 }

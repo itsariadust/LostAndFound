@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClaimsTableModel extends AbstractTableModel {
-    private final String[] columns = { "Claim Number", "Claimant Name", "Claimant Contact",
+    private final String[] columns = { "Claim Number", "Claimant Name", "Item Claimed", "Claimant Contact",
             "Claim Date", "Status"};
     private List<Claims> data = new ArrayList<>();
 
@@ -37,9 +37,10 @@ public class ClaimsTableModel extends AbstractTableModel {
         return switch (col) {
             case 0 -> record.getClaimId();
             case 1 -> record.getClaimantName();
-            case 2 -> record.getClaimantContact();
-            case 3 -> record.getClaimDate();
-            case 4 -> record.getStatus();
+            case 2 -> record.getItemId();
+            case 3 -> record.getClaimantContact();
+            case 4 -> record.getClaimDate();
+            case 5 -> record.getStatus();
             default -> null;
         };
     }

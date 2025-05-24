@@ -17,10 +17,8 @@ public interface ClaimsDao {
     // Get by filter (status or item name)
     @SqlQuery("""
             SELECT * FROM Claims
-            WHERE
-                (:status IS NULL OR Status = :status)
-                AND
-                (:claimantName IS NULL OR claimantName = :claimantName)
+            WHERE (Status LIKE '%' + :status + '%' OR :status IS NULL)
+              AND (ClaimantName LIKE '%' + :claimantName + '%' OR :claimantName IS NULL);
             """)
-    List<Claims> findByFilter(@Bind("status") String status, @Bind("claimantName") String claimantName);
+    List<Claims> findByFilter(@Bind("claimantName") String claimantName, @Bind("status") String status);
 }

@@ -2,7 +2,6 @@ package controllers;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import models.Claims;
-import models.LostItems;
 import models.dao.ClaimsDao;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.mapper.reflect.BeanMapper;
@@ -43,13 +42,17 @@ public class ClaimsController {
         System.out.println("Editing claim");
     }
 
-    public static void filterClaims(String filter) {
-        System.out.println("Filtering Claims by: " + filter);
-        // Todo: filter out claims
+    public static List<Claims> filterClaims(String searchText, String filter) {
+        System.out.println("Filtering Claims by: " + searchText + " and " + filter);
+        if (searchText.isEmpty()) {
+            searchText = null;
+        } if (filter.equals("All")) {
+            filter = null;
+        }
+        return claimsDao.findByFilter(searchText, filter);
     }
 
     public static List<Claims> getAllClaims() {
-        List<Claims> claimsList = claimsDao.findAll();
-        return claimsList;
+        return claimsDao.findAll();
     }
 }
