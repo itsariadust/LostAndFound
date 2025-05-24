@@ -31,7 +31,8 @@ public class MainView extends JFrame {
     private JButton cancelClaimEditButton;
     private JButton addImageItemButton;
     private JLabel imageLabel;
-    private JComboBox<String> statusComboBox;
+    private JComboBox<String> lostItemsStatusComboBox;
+    private JComboBox<String> claimsStatusComboBox;
 
     // Information fields
     private ArrayList<JComponent> lostItemsFields = new ArrayList<>();
@@ -45,7 +46,8 @@ public class MainView extends JFrame {
     // Information Panels
     private JPanel lostItemsDetailsPanel;
     private JPanel claimsDetailsPanel;
-    private JPanel currentDetailsPanel;
+    private JSplitPane lostItemsSplitPane;
+    private JSplitPane claimsSplitPane;
 
     // Flag
     private enum OperationMode { ADD, EDIT, VIEW }
@@ -87,9 +89,7 @@ public class MainView extends JFrame {
             Main Panel
             ----
          */
-        JPanel mainPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5); // Padding
+        JPanel mainPanel = new JPanel(new BorderLayout());
 
         /*
             ----
@@ -121,11 +121,7 @@ public class MainView extends JFrame {
         headerPanel.add(userPanel, headerGbc);
 
         // Add header to main panel
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        mainPanel.add(headerPanel, gbc);
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
 
         /*
             ----
@@ -161,12 +157,15 @@ public class MainView extends JFrame {
         searchGbc.weightx = 0.1;
         searchToolbar.add(filterButton, searchGbc);
 
+        // Filter Combobox
+        filterCombo = new JComboBox<>();
+        updateFilterOptions(0); // Initialize with first tab's options
+        searchGbc.gridx = 3;
+        searchGbc.weightx = 0.1;
+        searchToolbar.add(filterCombo, searchGbc);
+
         // Add toolbar to main panel
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        mainPanel.add(searchToolbar, gbc);
+        mainPanel.add(searchToolbar, BorderLayout.CENTER);
 
         /*
             ----
@@ -185,13 +184,11 @@ public class MainView extends JFrame {
         dataToolBar.add(editButton);
         dataToolBar.add(deleteButton);
 
-        // Add to main panel (position 2)
-        gbc.gridx = 0;
-        gbc.gridy = 2;  // Now this is below search toolbar (y=1)
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, 5, 5, 5);  // Add some bottom margin
-        mainPanel.add(dataToolBar, gbc);
+        // Add to main panel
+        JPanel toolbarPanel = new JPanel(new BorderLayout());
+        toolbarPanel.add(searchToolbar, BorderLayout.NORTH);
+        toolbarPanel.add(dataToolBar, BorderLayout.SOUTH);
+        mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
         /*
             ----
@@ -199,9 +196,10 @@ public class MainView extends JFrame {
             ----
          */
         tabbedPane = new JTabbedPane();
+        initializeDetailsPanels(); // Initialize panels depending on tab
 
         // Lost Items tab
-        JPanel lostItemsPanel = new JPanel(new BorderLayout());
+        JPanel lostItemsTablePanel = new JPanel(new BorderLayout());
         itemsTable = new JTable(100, 5)  {
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -209,11 +207,20 @@ public class MainView extends JFrame {
         };
         itemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollLostPane = new JScrollPane(itemsTable);
-        lostItemsPanel.add(scrollLostPane, BorderLayout.CENTER);
-        tabbedPane.addTab("Lost Items", lostItemsPanel);
+        lostItemsTablePanel.add(scrollLostPane, BorderLayout.CENTER);
+
+        lostItemsSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        lostItemsSplitPane.setLeftComponent(lostItemsTablePanel);
+        lostItemsSplitPane.setRightComponent(lostItemsDetailsPanel);
+        lostItemsSplitPane.setDividerLocation(1280);
+        lostItemsSplitPane.setResizeWeight(0.8);
+
+        JPanel lostItemsTabPanel = new JPanel(new BorderLayout());
+        lostItemsTabPanel.add(lostItemsSplitPane, BorderLayout.CENTER);
+        tabbedPane.addTab("Lost Items", lostItemsTabPanel);
 
         // Claims tab
-        JPanel claimsPanel = new JPanel(new BorderLayout());
+        JPanel claimsTablePanel = new JPanel(new BorderLayout());
         claimsTable = new JTable(100, 5)  {
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -221,45 +228,20 @@ public class MainView extends JFrame {
         };
         claimsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollClaimsPane = new JScrollPane(claimsTable);
-        claimsPanel.add(scrollClaimsPane, BorderLayout.CENTER);
-        tabbedPane.addTab("Claims", claimsPanel);
+        claimsTablePanel.add(scrollClaimsPane, BorderLayout.CENTER);
+
+        claimsSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        claimsSplitPane.setLeftComponent(claimsTablePanel);
+        claimsSplitPane.setRightComponent(claimsDetailsPanel);
+        claimsSplitPane.setDividerLocation(1280);
+        claimsSplitPane.setResizeWeight(0.8);
+
+        JPanel claimsTabPanel = new JPanel(new BorderLayout());
+        claimsTabPanel.add(claimsSplitPane, BorderLayout.CENTER);
+        tabbedPane.addTab("Claims", claimsTabPanel);
 
         // Add tabbed pane to main panel
-        gbc.gridy = 2;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0; // This makes it take remaining space
-        gbc.fill = GridBagConstraints.BOTH;
-        mainPanel.add(tabbedPane, gbc);
-
-        /*
-            ----
-            Split Pane
-            ----
-         */
-        initializeDetailsPanels(); // Initialize panels depending on tab
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setDividerLocation(1280); // Initial divider position
-        splitPane.setResizeWeight(0.8); // 80% space for tabbed pane, 30% for details
-
-        // Add your existing tabbed pane to the left
-        splitPane.setLeftComponent(tabbedPane);
-
-        // Add the details panel to the right of the split pane
-        splitPane.setRightComponent(currentDetailsPanel);
-
-        // Add split pane with tabbed pane and details panel (position 3)
-        gbc.gridy = 3;  // Now this is below both toolbars (y=1 and y=2)
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0; // This makes it take remaining space
-        gbc.fill = GridBagConstraints.BOTH;
-        mainPanel.add(splitPane, gbc);
-
-        // Filter Combobox
-        filterCombo = new JComboBox<>();
-        updateFilterOptions(tabbedPane.getSelectedIndex()); // Initialize with first tab's options
-        searchGbc.gridx = 3;
-        searchGbc.weightx = 0.1;
-        searchToolbar.add(filterCombo, searchGbc);
+        mainPanel.add(tabbedPane, BorderLayout.CENTER);
 
         add(mainPanel);
 
@@ -288,54 +270,25 @@ public class MainView extends JFrame {
         // Tabbed pane listener
         tabbedPane.addChangeListener(e -> {
             int selectedIndex = tabbedPane.getSelectedIndex();
-
             updateFilterOptions(selectedIndex);
             updateStatusOptions(selectedIndex);
-
-            // Remove current panel
-            splitPane.remove(currentDetailsPanel);
-
-            // Switch to appropriate panel
-            if (selectedIndex == 0) { // Lost Items
-                currentDetailsPanel = lostItemsDetailsPanel;
-            } else { // Claims
-                currentDetailsPanel = claimsDetailsPanel;
-            }
-
-            // Add new panel and refresh
-            splitPane.setRightComponent(currentDetailsPanel);
-            splitPane.revalidate();
-            splitPane.repaint();
-
-            // Update other tab-specific components
-            updateFilterOptions(selectedIndex);
             updateButtonActions(selectedIndex);
         });
 
         // Cancel edit buttons
         cancelItemEditButton.addActionListener(e -> {
-            // Clear all lost items fields
             clearFields(lostItemsFields);
             imageLabel.setIcon(null);
-
-            // Hide buttons
             addImageItemButton.setVisible(false);
             saveItemButton.setVisible(false);
             cancelItemEditButton.setVisible(false);
-
-            // Disable fields
             setFieldsEnabled(lostItemsFields, false);
         });
 
         cancelClaimEditButton.addActionListener(e -> {
-            // Clear all claims fields
             clearFields(claimsFields);
-
-            // Hide buttons
             saveClaimButton.setVisible(false);
             cancelClaimEditButton.setVisible(false);
-
-            // Disable fields
             setFieldsEnabled(claimsFields, false);
         });
 
@@ -352,6 +305,9 @@ public class MainView extends JFrame {
         });
 
         // Call this initially to set up first tab's actions
+        updateFilterOptions(tabbedPane.getSelectedIndex());
+        updateStatusOptions(0); // Update lost items status
+        updateStatusOptions(1); // Update claims status
         updateButtonActions(tabbedPane.getSelectedIndex());
     }
 
@@ -374,21 +330,26 @@ public class MainView extends JFrame {
         filterCombo.setSelectedIndex(0);
     }
 
-    private void updateStatusOptions (int selectedTabIndex) {
+    private void updateStatusOptions(int selectedTabIndex) {
         DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
 
         if (selectedTabIndex == 0) { // Lost Items tab
             model.addElement("Unclaimed");
             model.addElement("Claimed");
             model.addElement("Disposed");
+            if (lostItemsStatusComboBox != null) {
+                lostItemsStatusComboBox.setModel(model);
+                lostItemsStatusComboBox.setSelectedIndex(0);
+            }
         } else if (selectedTabIndex == 1) { // Claims tab
             model.addElement("Pending");
             model.addElement("Approved");
             model.addElement("Denied");
+            if (claimsStatusComboBox != null) {
+                claimsStatusComboBox.setModel(model);
+                claimsStatusComboBox.setSelectedIndex(0);
+            }
         }
-
-        statusComboBox.setModel(model);
-        statusComboBox.setSelectedIndex(0);
     }
 
     private void updateButtonActions(int selectedTabIndex) {
@@ -522,9 +483,6 @@ public class MainView extends JFrame {
         String[] claimsLabels = {"Claimant Name", "Item Claimed", "Claim Date",
                 "Ownership Proof", "Status", "Approved By", "Approval Date"};
         addContentToPanels(claimsGbc, claimsLabels, claimsContent, claimsDetailsPanel, false);
-
-        // Set initial panel
-        currentDetailsPanel = lostItemsDetailsPanel;
     }
 
     private void addContentToPanels(GridBagConstraints gbc, String[] labels, JPanel content,
@@ -625,18 +583,20 @@ public class MainView extends JFrame {
                     claimsInputs.put(fieldLabel, textArea);
                 }
             } else if (fieldLabel.equals("Status")) {
-                statusComboBox = new JComboBox<>();
+                JComboBox<String> statusCombo = new JComboBox<>();
                 gbc.fill = GridBagConstraints.HORIZONTAL;
-                gbc.weighty = 0.0; // No vertical expansion
-                statusComboBox.setEnabled(false);
-                updateStatusOptions(tabbedPane.getSelectedIndex());
-                panel.add(statusComboBox, gbc);
+                gbc.weighty = 0.0;
+                statusCombo.setEnabled(false);
+                panel.add(statusCombo, gbc);
+
                 if (isLostItemsPanel) {
-                    lostItemsFields.add(statusComboBox);
-                    lostItemsInputs.put(fieldLabel, statusComboBox);
+                    this.lostItemsStatusComboBox = statusCombo;
+                    lostItemsFields.add(statusCombo);
+                    lostItemsInputs.put(fieldLabel, statusCombo);
                 } else {
-                    claimsFields.add(statusComboBox);
-                    claimsInputs.put(fieldLabel, statusComboBox);
+                    this.claimsStatusComboBox = statusCombo;
+                    claimsFields.add(statusCombo);
+                    claimsInputs.put(fieldLabel, statusCombo);
                 }
             } else {
                 // TextField configuration
