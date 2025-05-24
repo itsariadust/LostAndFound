@@ -4,6 +4,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import controllers.LostItemController;
+import controllers.ClaimsController;
+import models.LostItemsTableModel;
 
 public class MainView extends JFrame {
     // Components
@@ -19,24 +25,34 @@ public class MainView extends JFrame {
     private JButton addButton;
     private JButton editButton;
     private JButton deleteButton;
-    private JButton printButton;
     private JButton saveItemButton;
     private JButton saveClaimButton;
     private JButton cancelItemEditButton;
     private JButton cancelClaimEditButton;
     private JButton addImageItemButton;
     private JLabel imageLabel;
+    private JComboBox<String> statusComboBox;
 
     // Information fields
     private ArrayList<JComponent> lostItemsFields = new ArrayList<>();
     private ArrayList<JComponent> claimsFields = new ArrayList<>();
+
+    // And inputs
+    private Map<String, JComponent> lostItemsInputs = new LinkedHashMap<>();
+    private Map<String, JComponent> claimsInputs = new LinkedHashMap<>();
+    String itemImage;
 
     // Information Panels
     private JPanel lostItemsDetailsPanel;
     private JPanel claimsDetailsPanel;
     private JPanel currentDetailsPanel;
 
-    String itemImage;
+    // Flag
+    private enum OperationMode { ADD, EDIT, VIEW }
+    private OperationMode currentMode = OperationMode.VIEW;
+
+    // Table model
+    private LostItemsTableModel lostItemsTableModel;
 
     public MainView(String userName) {
         /*
@@ -164,12 +180,10 @@ public class MainView extends JFrame {
         addButton = new JButton("Add");
         editButton = new JButton("Edit");
         deleteButton = new JButton("Delete");
-        printButton = new JButton("Print Report");
 
         dataToolBar.add(addButton);
         dataToolBar.add(editButton);
         dataToolBar.add(deleteButton);
-        dataToolBar.add(printButton);
 
         // Add to main panel (position 2)
         gbc.gridx = 0;
@@ -240,13 +254,9 @@ public class MainView extends JFrame {
         gbc.fill = GridBagConstraints.BOTH;
         mainPanel.add(splitPane, gbc);
 
+        // Filter Combobox
         filterCombo = new JComboBox<>();
         updateFilterOptions(tabbedPane.getSelectedIndex()); // Initialize with first tab's options
-
-        // Add tab change listener
-        tabbedPane.addChangeListener(e -> {
-            updateFilterOptions(tabbedPane.getSelectedIndex());
-        });
         searchGbc.gridx = 3;
         searchGbc.weightx = 0.1;
         searchToolbar.add(filterCombo, searchGbc);
@@ -279,6 +289,9 @@ public class MainView extends JFrame {
         tabbedPane.addChangeListener(e -> {
             int selectedIndex = tabbedPane.getSelectedIndex();
 
+            updateFilterOptions(selectedIndex);
+            updateStatusOptions(selectedIndex);
+
             // Remove current panel
             splitPane.remove(currentDetailsPanel);
 
@@ -299,6 +312,7 @@ public class MainView extends JFrame {
             updateButtonActions(selectedIndex);
         });
 
+        // Cancel edit buttons
         cancelItemEditButton.addActionListener(e -> {
             // Clear all lost items fields
             clearFields(lostItemsFields);
@@ -331,9 +345,9 @@ public class MainView extends JFrame {
             int selectedTab = tabbedPane.getSelectedIndex();
 
             if (selectedTab == 0) { // Lost Items tab
-                filterLostItems(selectedFilter);
+                LostItemController.filterLostItems(selectedFilter);
             } else if (selectedTab == 1) { // Claims tab
-                filterClaims(selectedFilter);
+                ClaimsController.filterClaims(selectedFilter);
             }
         });
 
@@ -360,44 +374,92 @@ public class MainView extends JFrame {
         filterCombo.setSelectedIndex(0);
     }
 
+    private void updateStatusOptions (int selectedTabIndex) {
+        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+
+        if (selectedTabIndex == 0) { // Lost Items tab
+            model.addElement("Unclaimed");
+            model.addElement("Claimed");
+            model.addElement("Disposed");
+        } else if (selectedTabIndex == 1) { // Claims tab
+            model.addElement("Pending");
+            model.addElement("Approved");
+            model.addElement("Denied");
+        }
+
+        statusComboBox.setModel(model);
+        statusComboBox.setSelectedIndex(0);
+    }
+
     private void updateButtonActions(int selectedTabIndex) {
         // Remove all existing action listeners
         removeAllActionListeners();
 
         if (selectedTabIndex == 0) { // Lost Items tab
             addButton.addActionListener(e -> {
+                currentMode = OperationMode.ADD;
                 clearFields(lostItemsFields);
                 setFieldsEnabled(lostItemsFields, true);
                 addImageItemButton.setVisible(true);
                 saveItemButton.setVisible(true);
                 cancelItemEditButton.setVisible(true);
-                addLostItem();
             });
             editButton.addActionListener(e -> {
+                currentMode = OperationMode.EDIT;
                 setFieldsEnabled(lostItemsFields, true);
                 saveItemButton.setVisible(true);
                 cancelItemEditButton.setVisible(true);
-                editLostItem();
             });
-            deleteButton.addActionListener(e -> deleteLostItem());
-            printButton.addActionListener(e -> printLostItemsReport());
+            deleteButton.addActionListener(e -> LostItemController.deleteLostItem());
+            saveItemButton.addActionListener(e -> {
+                Map<String, String> itemData = getFieldValues(lostItemsInputs);
+                // Process the data (save to database, etc.)
+                if (currentMode == OperationMode.ADD) {
+                    new LostItemController();
+                    if (!LostItemController.addLostItem(itemData)) {
+                        return;
+                    }
+                    JOptionPane.showMessageDialog(this.rootPane, "Item added successfully.",
+                            "Add Item Record Success", JOptionPane.INFORMATION_MESSAGE);
+                } else if (currentMode == OperationMode.EDIT) {
+                    LostItemController.editLostItem(itemData); // editLostItem(itemData);
+                }
+
+                // Reset UI
+                setFieldsEnabled(lostItemsFields, false);
+                saveItemButton.setVisible(false);
+                cancelItemEditButton.setVisible(false);
+            });
         }
         else if (selectedTabIndex == 1) { // Claims tab
             addButton.addActionListener(e -> {
+                currentMode = OperationMode.ADD;
                 clearFields(claimsFields);
                 setFieldsEnabled(claimsFields, true);
                 saveClaimButton.setVisible(true);
                 cancelClaimEditButton.setVisible(true);
-                addClaim();
             });
             editButton.addActionListener(e -> {
+                currentMode = OperationMode.EDIT;
                 setFieldsEnabled(claimsFields, true);
                 saveClaimButton.setVisible(true);
                 cancelClaimEditButton.setVisible(true);
-                editClaim();
             });
-            deleteButton.addActionListener(e -> deleteClaim());
-            printButton.addActionListener(e -> printClaimsReport());
+            deleteButton.addActionListener(e -> ClaimsController.deleteClaim());
+            saveClaimButton.addActionListener(e -> {
+                Map<String, String> claimData = getFieldValues(claimsInputs);
+                // Process the data
+                if (currentMode == OperationMode.ADD) {
+                    ClaimsController.addClaim(claimData);
+                } else if (currentMode == OperationMode.EDIT) {
+                    ClaimsController.editClaim(claimData); // editClaim(itemData);
+                }
+
+                // Reset UI
+                setFieldsEnabled(claimsFields, false);
+                saveClaimButton.setVisible(false);
+                cancelClaimEditButton.setVisible(false);
+            });
         }
 
         // Update button text if needed
@@ -405,17 +467,15 @@ public class MainView extends JFrame {
             addButton.setText("Add Claim");
             editButton.setText("Edit Claim");
             deleteButton.setText("Delete Claim");
-            printButton.setText("Print Claim");
         } else {
             addButton.setText("Add Item");
             editButton.setText("Edit Item");
             deleteButton.setText("Delete Item");
-            printButton.setText("Print Item");
         }
     }
 
     private void removeAllActionListeners() {
-        removeActionListenersFrom(addButton, editButton, deleteButton, printButton);
+        removeActionListenersFrom(addButton, editButton, deleteButton);
     }
 
     private void removeActionListenersFrom(JButton... buttons) {
@@ -475,7 +535,6 @@ public class MainView extends JFrame {
         // Reset constraints
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.weighty = 1;
         gbc.weightx = 1.0;
         gbc.weighty = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -565,6 +624,20 @@ public class MainView extends JFrame {
                     claimsFields.add(scrollPane);
                     claimsInputs.put(fieldLabel, textArea);
                 }
+            } else if (fieldLabel.equals("Status")) {
+                statusComboBox = new JComboBox<>();
+                gbc.fill = GridBagConstraints.HORIZONTAL;
+                gbc.weighty = 0.0; // No vertical expansion
+                statusComboBox.setEnabled(false);
+                updateStatusOptions(tabbedPane.getSelectedIndex());
+                panel.add(statusComboBox, gbc);
+                if (isLostItemsPanel) {
+                    lostItemsFields.add(statusComboBox);
+                    lostItemsInputs.put(fieldLabel, statusComboBox);
+                } else {
+                    claimsFields.add(statusComboBox);
+                    claimsInputs.put(fieldLabel, statusComboBox);
+                }
             } else {
                 // TextField configuration
                 JTextField textField = new JTextField(15);
@@ -615,55 +688,20 @@ public class MainView extends JFrame {
         }
     }
 
-    // Lost Items tab actions
-    private void addLostItem() {
-        System.out.println("Adding new lost item");
-        // Todo: implementation here
-    }
-
-    private void editLostItem() {
-        System.out.println("Editing lost item");
-        // Todo: implementation here
-    }
-
-    private void deleteLostItem() {
-        System.out.println("Editing lost item");
-        // Todo: implementation here
-    }
-
-    private void printLostItemsReport() {
-        System.out.println("Editing lost item");
-        // Todo: implementation here
-    }
-
-    // Claims tab actions
-    private void addClaim() {
-        System.out.println("Adding new claim");
-        // Todo: implementation here
-    }
-
-    private void editClaim() {
-        System.out.println("Editing claim");
-        // Todo: implementation here
-    }
-
-    private void deleteClaim() {
-        System.out.println("Editing claim");
-        JOptionPane.showConfirmDialog(this.rootPane, "Are you sure you want to delete this item?");
-    }
-
-    private void printClaimsReport() {
-        System.out.println("Editing claim");
-        // Todo: implementation here
-    }
-
-    private void filterLostItems(String filter) {
-        System.out.println("Filtering Lost Items by: " + filter);
-        // Todo: filter out lost items
-    }
-
-    private void filterClaims(String filter) {
-        System.out.println("Filtering Claims by: " + filter);
-        // Todo: filter out claims
+    private Map<String, String> getFieldValues(Map<String, JComponent> fieldInputs) {
+        Map<String, String> values = new LinkedHashMap<>();
+        fieldInputs.forEach((label, component) -> {
+            if (component instanceof JTextArea) {
+                values.put(label, ((JTextArea) component).getText());
+            } else if (component instanceof JTextField) {
+                values.put(label, ((JTextField) component).getText());
+            } else if (component instanceof JComboBox<?>) {
+                values.put(label, ((JComboBox<?>) component).getSelectedItem().toString());
+            }
+        });
+        if (fieldInputs == this.lostItemsInputs) {
+            values.put("ImagePath", itemImage); // Add image path if exists
+        }
+        return values;
     }
 }
