@@ -1,4 +1,4 @@
-package models;
+package models.dao;
 
 import org.jdbi.v3.sqlobject.statement.*;
 import org.jdbi.v3.sqlobject.customizer.*;

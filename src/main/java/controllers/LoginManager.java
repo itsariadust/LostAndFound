@@ -1,6 +1,6 @@
 package controllers;
 
-import models.LoginDao;
+import models.dao.LoginDao;
 import models.SystemUsers;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.mapper.reflect.BeanMapper;
