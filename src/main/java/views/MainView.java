@@ -305,7 +305,7 @@ public class MainView extends JFrame {
                 List<LostItems> fileredItemsList = LostItemController.filterLostItems(searchField.getText(), selectedFilter);
                 lostItemsTableModel.setData(fileredItemsList);
             } else if (selectedTab == 1) { // Claims tab
-                List<ClaimWithItemName> claims = ClaimsController.getAllClaimsWithItemName();
+                List<ClaimWithItemName> claims = ClaimsController.filterClaims(searchField.getText(), selectedFilter);
                 claimsTableModel.setData(claims);
             }
         });

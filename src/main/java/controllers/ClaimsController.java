@@ -43,7 +43,7 @@ public class ClaimsController {
         System.out.println("Editing claim");
     }
 
-    public static List<Claims> filterClaims(String searchText, String filter) {
+    public static List<ClaimWithItemName> filterClaims(String searchText, String filter) {
         System.out.println("Filtering Claims by: " + searchText + " and " + filter);
         if (searchText.isEmpty()) {
             searchText = null;
