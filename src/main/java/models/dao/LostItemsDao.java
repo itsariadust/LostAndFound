@@ -29,7 +29,7 @@ public interface LostItemsDao {
             """)
     List<LostItems> findAll();
 
-    // Get by filter (status and item name
+    // Get by filter (status or item name)
     @SqlQuery("""
             SELECT * FROM LostItems
             WHERE

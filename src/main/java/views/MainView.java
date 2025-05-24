@@ -315,6 +315,7 @@ public class MainView extends JFrame {
         updateStatusOptions(1); // Update claims status
         updateButtonActions(tabbedPane.getSelectedIndex());
 
+        // Set data for the tables
         lostItemsTableModel.setData(LostItemController.getAllLostItems());
         claimsTableModel.setData(ClaimsController.getAllClaims());
     }

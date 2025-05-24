@@ -14,7 +14,7 @@ public interface ClaimsDao {
             """)
     List<Claims> findAll();
 
-    // Get by filter (status and item name
+    // Get by filter (status or item name)
     @SqlQuery("""
             SELECT * FROM Claims
             WHERE
