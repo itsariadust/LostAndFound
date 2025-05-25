@@ -15,6 +15,7 @@ import models.ClaimWithItemName;
 import models.LostItems;
 import models.TableModel.ClaimsTableModel;
 import models.TableModel.LostItemsTableModel;
+import utils.PathToImageIcon;
 
 public class MainView extends JFrame {
     // Components
@@ -727,10 +728,10 @@ public class MainView extends JFrame {
                 ((JTextComponent) component).setText(value);
             }
         }
+        imageLabel.setIcon(new PathToImageIcon().createImageIcon(itemRecord.get(7)));
     }
 
     private void populateClaimInfoInPane(ArrayList<String> itemRecord) {
-        System.out.println(itemRecord);
         for (int i = 0; i < itemRecord.size() && i < claimsFields.size(); i++) {
             JComponent component = claimsFields.get(i);
             String value = itemRecord.get(i);
