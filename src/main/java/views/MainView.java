@@ -56,9 +56,15 @@ public class MainView extends JFrame {
     private JSplitPane lostItemsSplitPane;
     private JSplitPane claimsSplitPane;
 
-    // Flag
+    // Table Models
+    LostItemsTableModel lostItemsTableModel;
+    ClaimsTableModel claimsTableModel;
+
+    // Flags
     private enum OperationMode { ADD, EDIT, VIEW }
     private OperationMode currentMode = OperationMode.VIEW;
+    private String selectedItemRecordId;
+    private String selectedClaimRecordId;
 
     public MainView(String userName) {
         /*
@@ -67,8 +73,8 @@ public class MainView extends JFrame {
             ----
          */
         // Table model
-        LostItemsTableModel lostItemsTableModel = new LostItemsTableModel();
-        ClaimsTableModel claimsTableModel = new ClaimsTableModel();
+        lostItemsTableModel = new LostItemsTableModel();
+        claimsTableModel = new ClaimsTableModel();
 
         /*
             ----
@@ -317,7 +323,7 @@ public class MainView extends JFrame {
         itemsTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = itemsTable.getSelectedRow();
-                if (currentMode == OperationMode.ADD || currentMode == OperationMode.EDIT){
+                if (currentMode == OperationMode.EDIT){
                     currentMode = OperationMode.VIEW;
                     clearFields(lostItemsFields);
                     imageLabel.setIcon(null);
@@ -326,7 +332,7 @@ public class MainView extends JFrame {
                     cancelItemEditButton.setVisible(false);
                     setFieldsEnabled(lostItemsFields, false);
                 }
-                if (selectedRow != -1) {
+                if (selectedRow != -1 && currentMode != OperationMode.ADD) {
                     int modelRow = itemsTable.convertRowIndexToModel(selectedRow);
                     selectedItemRecordId = itemsTable.getModel().getValueAt(modelRow, 0).toString();
                     ArrayList<String> itemRecord = LostItemController.getItemById(selectedItemRecordId);
@@ -339,14 +345,13 @@ public class MainView extends JFrame {
         claimsTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = claimsTable.getSelectedRow();
-                if (currentMode == OperationMode.ADD || currentMode == OperationMode.EDIT) {
+                if (currentMode == OperationMode.EDIT) {
                     currentMode = OperationMode.VIEW;
                     clearFields(claimsFields);
                     saveClaimButton.setVisible(false);
                     cancelClaimEditButton.setVisible(false);
                     setFieldsEnabled(claimsFields, false);
-                }
-                if (selectedRow != -1) {
+                } else if (selectedRow != -1 && currentMode != OperationMode.ADD) {
                     int modelRow = claimsTable.convertRowIndexToModel(selectedRow);
                     selectedClaimRecordId = claimsTable.getModel().getValueAt(modelRow, 0).toString();
                     ArrayList<String> itemRecord = ClaimsController.getClaimById(selectedClaimRecordId);
