@@ -1,9 +1,9 @@
 package controllers;
 
+import com.microsoft.sqlserver.jdbc.SQLServerException;
 import io.github.cdimascio.dotenv.Dotenv;
 import models.ClaimWithItemName;
 import models.Claims;
-import models.LostItems;
 import models.dao.ClaimsDao;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.mapper.reflect.BeanMapper;
@@ -31,20 +31,41 @@ public class ClaimsController {
         claimsDao = jdbi.onDemand(ClaimsDao.class);
     }
 
-    public static void addClaim(Map<String, String> claimData) {
+    public static boolean addClaim(Map<String, String> claimData) {
         System.out.println("Adding new claim");
-        claimData.forEach((field, value) ->
-                System.out.println(field + ": " + value));
+        return claimsDao.insert(
+                claimData.get("Item Claimed"),
+                claimData.get("Claimant Name"),
+                claimData.get("Claimant Contact"),
+                claimData.get("Claim Date"),
+                claimData.get("Ownership Proof"),
+                claimData.get("Status"));
     }
 
-    public static void editClaim(Map<String, String> newClaimData) {
+    public static boolean editClaim(Map<String, String> newClaimData, String selectedClaimRecordId) {
         System.out.println("Editing claim");
-        newClaimData.forEach((field, value) ->
-                System.out.println(field + ": " + value));
+        try {
+            if (!claimsDao.update(
+                    selectedClaimRecordId,
+                    newClaimData.get("Item Claimed"),
+                    newClaimData.get("Claimant Name"),
+                    newClaimData.get("Claimant Contact"),
+                    newClaimData.get("Claim Date"),
+                    newClaimData.get("Ownership Proof"),
+                    newClaimData.get("Status"),
+                    newClaimData.get("Approved By"),
+                    newClaimData.get("Approval Date"))) {
+                return false;
+            }
+        } catch (SQLServerException e) {
+            throw new RuntimeException(e);
+        }
+        return true;
     }
 
-    public static void deleteClaim() {
+    public static boolean deleteClaim(String selectedClaimRecordId) {
         System.out.println("Editing claim");
+        return claimsDao.delete(selectedClaimRecordId);
     }
 
     public static List<ClaimWithItemName> filterClaims(String searchText, String filter) {
@@ -67,6 +88,7 @@ public class ClaimsController {
         ClaimWithItemName recordObj = record.get();
         recordList.add(recordObj.getClaimantName());
         recordList.add(recordObj.getItemName());
+        recordList.add(recordObj.getClaimantContact());
         recordList.add(String.valueOf(recordObj.getClaimDate()));
         recordList.add(recordObj.getDescriptionOfProof());
         recordList.add(recordObj.getStatus());

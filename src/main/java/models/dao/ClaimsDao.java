@@ -1,14 +1,74 @@
 package models.dao;
 
+import com.microsoft.sqlserver.jdbc.SQLServerException;
 import models.ClaimWithItemName;
 import models.Claims;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
+import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface ClaimsDao {
+    // Insert entry
+    @SqlUpdate("""
+            DECLARE @ItemID int;
+            SELECT @ItemID = ItemID FROM dbo.LostItems WHERE ItemName = :itemName;
+
+            INSERT INTO Claims (ItemID, ClaimantName, ClaimantContact, ClaimDate, DescriptionOfProof, Status)
+            VALUES(
+                   @ItemID,
+                   :claimantName,
+                   :claimantContact,
+                   :claimDate,
+                   :description,
+                   :status
+            )
+            """)
+    boolean insert(@Bind("itemName") String itemName,
+                   @Bind("claimantName") String claimantName,
+                   @Bind("claimantContact") String claimantContact,
+                   @Bind("claimDate") String claimDate,
+                   @Bind("description") String description,
+                   @Bind("status") String status);
+
+    // Edit entry
+    @SqlUpdate("""
+            DECLARE @UserID int;
+            DECLARE @ItemID int;
+            SELECT @UserID = user_id FROM dbo.System_Users WHERE username = :username;
+            SELECT @ItemID = ItemID FROM dbo.LostItems WHERE ItemName = :itemName;
+            
+            UPDATE Claims
+            SET
+                ItemID = @ItemID,
+                ClaimantName = :claimantName,
+                ClaimantContact = :claimantContact,
+                ClaimDate = :claimDate,
+                DescriptionOfProof = :description,
+                Status = :status,
+                ApprovedBy = @UserID,
+                ApprovalDate = :approvalDate
+            WHERE ClaimID = :claimId
+            """)
+    boolean update(@Bind("claimId") String claimId,
+                   @Bind("itemName") String itemName,
+                   @Bind("claimantName") String claimantName,
+                   @Bind("claimantContact") String claimantContact,
+                   @Bind("claimDate") String claimDate,
+                   @Bind("description") String description,
+                   @Bind("status") String status,
+                   @Bind("username") String username,
+                   @Bind("approvalDate") String approvalDate)
+            throws SQLServerException;
+
+    // Delete record
+    @SqlUpdate("""
+            DELETE FROM Claims WHERE ClaimID = :claimId
+            """)
+    boolean delete(@Bind("claimId") String claimId);
+
     // Get all records
     @SqlQuery("""
             SELECT * FROM Claims
@@ -36,7 +96,7 @@ public interface ClaimsDao {
 
     // Get specific record by ID
     @SqlQuery("""
-            SELECT c.ClaimantName, i.ItemName, c.ClaimDate,
+            SELECT c.ClaimantName, i.ItemName, c.ClaimantContact, c.ClaimDate,
                    c.DescriptionOfProof, c.Status,
                    u.username AS approverName, c.ApprovalDate
             FROM Claims c

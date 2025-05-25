@@ -1,12 +1,11 @@
 package controllers;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.microsoft.sqlserver.jdbc.SQLServerException;
 import io.github.cdimascio.dotenv.Dotenv;
 import models.LostItems;
 import models.dao.LostItemsDao;
@@ -33,29 +32,40 @@ public class LostItemController {
     // Lost Items tab actions
     public static boolean addLostItem(Map<String, String> itemDataMap) {
         System.out.println("Adding new lost item");
-        if (!lostItemsDao.insert(
+        return lostItemsDao.insert(
                 itemDataMap.get("Item Name"),
                 itemDataMap.get("Description"),
                 itemDataMap.get("Category"),
                 itemDataMap.get("Location"),
-                Timestamp.valueOf(LocalDateTime.now()),
+                itemDataMap.get("Date Found"),
                 itemDataMap.get("Found By"),
                 itemDataMap.get("Status"),
-                itemDataMap.get("ImagePath"))) {
-            System.out.println("Insert failed");
-            return false;
+                itemDataMap.get("ImagePath"));
+    }
+
+    public static boolean editLostItem(Map<String, String> newItemData, String selectedItemRecordId) {
+        try {
+            if (!lostItemsDao.update(selectedItemRecordId,
+                    newItemData.get("Item Name"),
+                    newItemData.get("Description"),
+                    newItemData.get("Category"),
+                    newItemData.get("Location"),
+                    newItemData.get("Date Found"),
+                    newItemData.get("Found By"),
+                    newItemData.get("Status"),
+                    newItemData.get("ImagePath"))) {
+                System.out.println("Update failed");
+                return false;
+            }
+        } catch (SQLServerException e) {
+            throw new RuntimeException(e);
         }
         return true;
     }
 
-    public static void editLostItem(Map<String, String> newItemData) {
+    public static boolean deleteLostItem(String selectedItemRecordId) {
         System.out.println("Editing lost item");
-        newItemData.forEach((field, value) ->
-                System.out.println(field + ": " + value));
-    }
-
-    public static void deleteLostItem() {
-        System.out.println("Editing lost item");
+        return lostItemsDao.delete(selectedItemRecordId);
     }
 
     public static List<LostItems> filterLostItems(String searchText, String filter) {

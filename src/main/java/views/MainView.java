@@ -372,7 +372,11 @@ public class MainView extends JFrame {
                 JOptionPane.showMessageDialog(this.rootPane, "Item added successfully.",
                         "Add Item Record Success", JOptionPane.INFORMATION_MESSAGE);
             } else if (currentMode == OperationMode.EDIT) {
-                LostItemController.editLostItem(itemData); // editLostItem(itemData);
+                if (!LostItemController.editLostItem(itemData, selectedItemRecordId)) {
+                    return;
+                }
+                JOptionPane.showMessageDialog(this.rootPane, "Item edited successfully.",
+                        "Edit Item Record Success", JOptionPane.INFORMATION_MESSAGE);
             }
 
             // Reset UI
@@ -386,9 +390,18 @@ public class MainView extends JFrame {
             Map<String, String> claimData = getFieldValues(claimsInputs);
             // Process the data
             if (currentMode == OperationMode.ADD) {
-                ClaimsController.addClaim(claimData);
+                System.out.println(claimData);
+                if (!ClaimsController.addClaim(claimData)) {
+                    return;
+                }
+                JOptionPane.showMessageDialog(this.rootPane, "Claim added successfully.",
+                        "Add Claim Record Success", JOptionPane.INFORMATION_MESSAGE);
             } else if (currentMode == OperationMode.EDIT) {
-                ClaimsController.editClaim(claimData); // editClaim(itemData);
+                if (!ClaimsController.editClaim(claimData, selectedClaimRecordId)) {
+                    return;
+                }
+                JOptionPane.showMessageDialog(this.rootPane, "Claim edited successfully.",
+                        "Edit Claim Record Success", JOptionPane.INFORMATION_MESSAGE);
             }
 
             // Reset UI
@@ -396,6 +409,7 @@ public class MainView extends JFrame {
             saveClaimButton.setVisible(false);
             cancelClaimEditButton.setVisible(false);
             claimsTableModel.setData(ClaimsController.getAllClaimsWithItemName());
+            lostItemsTableModel.setData(LostItemController.getAllLostItems());
         });
 
         // Call this initially to set up first tab's actions
@@ -469,7 +483,15 @@ public class MainView extends JFrame {
                 saveItemButton.setVisible(true);
                 cancelItemEditButton.setVisible(true);
             });
-            deleteButton.addActionListener(e -> LostItemController.deleteLostItem());
+            deleteButton.addActionListener(e -> {
+                int confirmDelete = JOptionPane.showConfirmDialog(this.rootPane, "Do you want to delete this item?");
+                if (confirmDelete == JOptionPane.YES_OPTION) {
+                    LostItemController.deleteLostItem(selectedItemRecordId);
+                    JOptionPane.showMessageDialog(this.rootPane, "Item Successfully Deleted.",
+                            "Item Delete Success", JOptionPane.INFORMATION_MESSAGE);
+                    lostItemsTableModel.setData(LostItemController.getAllLostItems());
+                }
+            });
         }
         else if (selectedTabIndex == 1) { // Claims tab
             addButton.addActionListener(e -> {
@@ -485,7 +507,15 @@ public class MainView extends JFrame {
                 saveClaimButton.setVisible(true);
                 cancelClaimEditButton.setVisible(true);
             });
-            deleteButton.addActionListener(e -> ClaimsController.deleteClaim());
+            deleteButton.addActionListener(e -> {
+                int confirmDelete = JOptionPane.showConfirmDialog(this.rootPane, "Do you want to delete this claim?");
+                if (confirmDelete == JOptionPane.YES_OPTION) {
+                    ClaimsController.deleteClaim(selectedClaimRecordId);
+                    JOptionPane.showMessageDialog(this.rootPane, "Claim Successfully Deleted.",
+                            "Claim Delete Success", JOptionPane.INFORMATION_MESSAGE);
+                    claimsTableModel.setData(ClaimsController.getAllClaimsWithItemName());
+                }
+            });
         }
 
         // Update button text if needed
@@ -545,7 +575,7 @@ public class MainView extends JFrame {
 
         // Create content panel for fields
         JPanel claimsContent = new JPanel(new GridBagLayout());
-        String[] claimsLabels = {"Claimant Name", "Item Claimed", "Claim Date",
+        String[] claimsLabels = {"Claimant Name", "Item Claimed", "Claimant Contact", "Claim Date",
                 "Ownership Proof", "Status", "Approved By", "Approval Date"};
         addContentToPanels(claimsGbc, claimsLabels, claimsContent, claimsDetailsPanel, false);
     }
@@ -764,7 +794,7 @@ public class MainView extends JFrame {
             JComponent component = claimsFields.get(i);
             String value = itemRecord.get(i);
 
-            if (i == 3) {
+            if (i == 4) {
                 if (component instanceof JScrollPane) {
                     JScrollPane scrollPane = (JScrollPane) component;
                     Component view = scrollPane.getViewport().getView();

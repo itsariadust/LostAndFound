@@ -13,16 +13,55 @@ public interface LostItemsDao {
     // Insert record
     @SqlUpdate("""
             INSERT INTO LostItems
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES(
+                   :itemName,
+                   :itemDescription,
+                   :itemCategory,
+                   :locationFound,
+                   :dateFound,
+                   foundBy,
+                   :status,
+                   :imageURL)
             """)
-    boolean insert(String itemName,
-                   String itemDescription,
-                   String itemCategory,
-                   String locationFound,
-                   Timestamp dateFound,
-                   String foundBy,
-                   String status,
-                   String imageURL);
+    boolean insert(@Bind("itemName") String itemName,
+                   @Bind("itemDescription") String itemDescription,
+                   @Bind("itemCategory") String itemCategory,
+                   @Bind("locationFound") String locationFound,
+                   @Bind("dateFound") String dateFound,
+                   @Bind("foundBy") String foundBy,
+                   @Bind("status") String status,
+                   @Bind("imageURL") String imageURL);
+
+    // Update the record
+    @SqlUpdate("""
+            UPDATE LostItems
+            SET
+                ItemName = :itemName,
+                ItemDescription = :itemDescription,
+                ItemCategory = :itemCategory,
+                LocationFound = :locationFound,
+                DateFound = :dateFound,
+                FoundBy = :foundBy,
+                Status = :status,
+                ImageURL = :imageURL
+            WHERE ItemId = :itemId
+            """)
+    boolean update(@Bind("itemId") String itemId,
+                   @Bind("itemName") String itemName,
+                   @Bind("itemDescription") String itemDescription,
+                   @Bind("itemCategory") String itemCategory,
+                   @Bind("locationFound") String locationFound,
+                   @Bind("dateFound") String dateFound,
+                   @Bind("foundBy") String foundBy,
+                   @Bind("status") String status,
+                   @Bind("imageURL") String imageURL)
+            throws SQLServerException;
+
+    // Delete the record
+    @SqlUpdate("""
+            DELETE FROM LostItems WHERE ItemId = :itemId
+            """)
+    boolean delete(@Bind("itemId") String itemId);
 
     // Get all records
     @SqlQuery("""
