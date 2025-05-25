@@ -282,6 +282,7 @@ public class MainView extends JFrame {
 
         // Cancel edit buttons
         cancelItemEditButton.addActionListener(e -> {
+            currentMode = OperationMode.VIEW;
             clearFields(lostItemsFields);
             imageLabel.setIcon(null);
             addImageItemButton.setVisible(false);
@@ -291,6 +292,7 @@ public class MainView extends JFrame {
         });
 
         cancelClaimEditButton.addActionListener(e -> {
+            currentMode = OperationMode.VIEW;
             clearFields(claimsFields);
             saveClaimButton.setVisible(false);
             cancelClaimEditButton.setVisible(false);
@@ -315,10 +317,20 @@ public class MainView extends JFrame {
         itemsTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = itemsTable.getSelectedRow();
+                if (currentMode == OperationMode.ADD || currentMode == OperationMode.EDIT){
+                    currentMode = OperationMode.VIEW;
+                    clearFields(lostItemsFields);
+                    imageLabel.setIcon(null);
+                    addImageItemButton.setVisible(false);
+                    saveItemButton.setVisible(false);
+                    cancelItemEditButton.setVisible(false);
+                    setFieldsEnabled(lostItemsFields, false);
+                }
                 if (selectedRow != -1) {
                     int modelRow = itemsTable.convertRowIndexToModel(selectedRow);
-                    String idValue = itemsTable.getModel().getValueAt(modelRow, 0).toString();
-                    ArrayList<String> itemRecord = LostItemController.getItemById(idValue);
+                    selectedItemRecordId = itemsTable.getModel().getValueAt(modelRow, 0).toString();
+                    ArrayList<String> itemRecord = LostItemController.getItemById(selectedItemRecordId);
+                    System.out.println(selectedItemRecordId);
                     populateItemInfoInPane(itemRecord);
                 }
             }
@@ -327,10 +339,18 @@ public class MainView extends JFrame {
         claimsTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = claimsTable.getSelectedRow();
+                if (currentMode == OperationMode.ADD || currentMode == OperationMode.EDIT) {
+                    currentMode = OperationMode.VIEW;
+                    clearFields(claimsFields);
+                    saveClaimButton.setVisible(false);
+                    cancelClaimEditButton.setVisible(false);
+                    setFieldsEnabled(claimsFields, false);
+                }
                 if (selectedRow != -1) {
                     int modelRow = claimsTable.convertRowIndexToModel(selectedRow);
-                    String idValue = claimsTable.getModel().getValueAt(modelRow, 0).toString();
-                    ArrayList<String> itemRecord = ClaimsController.getClaimById(idValue);
+                    selectedClaimRecordId = claimsTable.getModel().getValueAt(modelRow, 0).toString();
+                    ArrayList<String> itemRecord = ClaimsController.getClaimById(selectedClaimRecordId);
+                    System.out.println(selectedClaimRecordId);
                     populateClaimInfoInPane(itemRecord);
                 }
             }
