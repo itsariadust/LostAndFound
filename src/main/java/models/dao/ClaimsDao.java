@@ -2,13 +2,13 @@ package models.dao;
 
 import models.ClaimWithItemName;
 import models.Claims;
-import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
+import models.LostItems;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 
 import java.util.List;
+import java.util.Optional;
 
-@RegisterBeanMapper(ClaimWithItemName.class)
 public interface ClaimsDao {
     // Get all records
     @SqlQuery("""
@@ -34,4 +34,16 @@ public interface ClaimsDao {
             ORDER BY c.ClaimDate DESC
             """)
     List<ClaimWithItemName> getAllClaimsWithItemNames();
+
+    // Get specific record by ID
+    @SqlQuery("""
+            SELECT c.ClaimantName, i.ItemName, c.ClaimDate,
+                   c.DescriptionOfProof, c.Status,
+                   u.username AS approverName, c.ApprovalDate
+            FROM Claims c
+                INNER JOIN LostItems i ON i.ItemID = c.ItemID
+                LEFT JOIN System_Users u ON c.ApprovedBy = u.user_id
+            WHERE ClaimID = :claimID
+            """)
+    Optional<ClaimWithItemName> findById(@Bind("claimID") String claimID);
 }

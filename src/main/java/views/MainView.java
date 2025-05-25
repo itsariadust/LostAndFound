@@ -1,6 +1,7 @@
 package views;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -11,7 +12,6 @@ import java.util.Map;
 import controllers.LostItemController;
 import controllers.ClaimsController;
 import models.ClaimWithItemName;
-import models.Claims;
 import models.LostItems;
 import models.TableModel.ClaimsTableModel;
 import models.TableModel.LostItemsTableModel;
@@ -217,7 +217,7 @@ public class MainView extends JFrame {
         lostItemsSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         lostItemsSplitPane.setLeftComponent(lostItemsTablePanel);
         lostItemsSplitPane.setRightComponent(lostItemsDetailsPanel);
-        lostItemsSplitPane.setDividerLocation(1600);
+        lostItemsSplitPane.setDividerLocation(1366);
         lostItemsSplitPane.setResizeWeight(0.8);
 
         JPanel lostItemsTabPanel = new JPanel(new BorderLayout());
@@ -237,7 +237,7 @@ public class MainView extends JFrame {
         claimsSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         claimsSplitPane.setLeftComponent(claimsTablePanel);
         claimsSplitPane.setRightComponent(claimsDetailsPanel);
-        claimsSplitPane.setDividerLocation(1600);
+        claimsSplitPane.setDividerLocation(1366);
         claimsSplitPane.setResizeWeight(0.8);
 
         JPanel claimsTabPanel = new JPanel(new BorderLayout());
@@ -308,6 +308,68 @@ public class MainView extends JFrame {
                 List<ClaimWithItemName> claims = ClaimsController.filterClaims(searchField.getText(), selectedFilter);
                 claimsTableModel.setData(claims);
             }
+        });
+
+        // Row selection listener
+        itemsTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = itemsTable.getSelectedRow();
+                if (selectedRow != -1) {
+                    int modelRow = itemsTable.convertRowIndexToModel(selectedRow);
+                    String idValue = itemsTable.getModel().getValueAt(modelRow, 0).toString();
+                    ArrayList<String> itemRecord = LostItemController.getItemById(idValue);
+                    populateItemInfoInPane(itemRecord);
+                }
+            }
+        });
+
+        claimsTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = claimsTable.getSelectedRow();
+                if (selectedRow != -1) {
+                    int modelRow = claimsTable.convertRowIndexToModel(selectedRow);
+                    String idValue = claimsTable.getModel().getValueAt(modelRow, 0).toString();
+                    ArrayList<String> itemRecord = ClaimsController.getClaimById(idValue);
+                    populateClaimInfoInPane(itemRecord);
+                }
+            }
+        });
+
+        // Save buttons listeners
+        saveItemButton.addActionListener(e -> {
+            Map<String, String> itemData = getFieldValues(lostItemsInputs);
+            // Process the data (save to database, etc.)
+            if (currentMode == OperationMode.ADD) {
+                if (!LostItemController.addLostItem(itemData)) {
+                    return;
+                }
+                JOptionPane.showMessageDialog(this.rootPane, "Item added successfully.",
+                        "Add Item Record Success", JOptionPane.INFORMATION_MESSAGE);
+            } else if (currentMode == OperationMode.EDIT) {
+                LostItemController.editLostItem(itemData); // editLostItem(itemData);
+            }
+
+            // Reset UI
+            setFieldsEnabled(lostItemsFields, false);
+            saveItemButton.setVisible(false);
+            cancelItemEditButton.setVisible(false);
+            lostItemsTableModel.setData(LostItemController.getAllLostItems());
+        });
+
+        saveClaimButton.addActionListener(e -> {
+            Map<String, String> claimData = getFieldValues(claimsInputs);
+            // Process the data
+            if (currentMode == OperationMode.ADD) {
+                ClaimsController.addClaim(claimData);
+            } else if (currentMode == OperationMode.EDIT) {
+                ClaimsController.editClaim(claimData); // editClaim(itemData);
+            }
+
+            // Reset UI
+            setFieldsEnabled(claimsFields, false);
+            saveClaimButton.setVisible(false);
+            cancelClaimEditButton.setVisible(false);
+            claimsTableModel.setData(ClaimsController.getAllClaimsWithItemName());
         });
 
         // Call this initially to set up first tab's actions
@@ -382,25 +444,6 @@ public class MainView extends JFrame {
                 cancelItemEditButton.setVisible(true);
             });
             deleteButton.addActionListener(e -> LostItemController.deleteLostItem());
-            saveItemButton.addActionListener(e -> {
-                Map<String, String> itemData = getFieldValues(lostItemsInputs);
-                // Process the data (save to database, etc.)
-                if (currentMode == OperationMode.ADD) {
-                    new LostItemController();
-                    if (!LostItemController.addLostItem(itemData)) {
-                        return;
-                    }
-                    JOptionPane.showMessageDialog(this.rootPane, "Item added successfully.",
-                            "Add Item Record Success", JOptionPane.INFORMATION_MESSAGE);
-                } else if (currentMode == OperationMode.EDIT) {
-                    LostItemController.editLostItem(itemData); // editLostItem(itemData);
-                }
-
-                // Reset UI
-                setFieldsEnabled(lostItemsFields, false);
-                saveItemButton.setVisible(false);
-                cancelItemEditButton.setVisible(false);
-            });
         }
         else if (selectedTabIndex == 1) { // Claims tab
             addButton.addActionListener(e -> {
@@ -417,20 +460,6 @@ public class MainView extends JFrame {
                 cancelClaimEditButton.setVisible(true);
             });
             deleteButton.addActionListener(e -> ClaimsController.deleteClaim());
-            saveClaimButton.addActionListener(e -> {
-                Map<String, String> claimData = getFieldValues(claimsInputs);
-                // Process the data
-                if (currentMode == OperationMode.ADD) {
-                    ClaimsController.addClaim(claimData);
-                } else if (currentMode == OperationMode.EDIT) {
-                    ClaimsController.editClaim(claimData); // editClaim(itemData);
-                }
-
-                // Reset UI
-                setFieldsEnabled(claimsFields, false);
-                saveClaimButton.setVisible(false);
-                cancelClaimEditButton.setVisible(false);
-            });
         }
 
         // Update button text if needed
@@ -673,5 +702,59 @@ public class MainView extends JFrame {
             values.put("ImagePath", itemImage); // Add image path if exists
         }
         return values;
+    }
+
+    private void populateItemInfoInPane(ArrayList<String> itemRecord) {
+        for (int i = 0; i < itemRecord.size() && i < lostItemsFields.size(); i++) {
+            JComponent component = lostItemsFields.get(i);
+            String value = itemRecord.get(i);
+
+            if (i == 3) {
+                if (component instanceof JScrollPane) {
+                    JScrollPane scrollPane = (JScrollPane) component;
+                    Component view = scrollPane.getViewport().getView();
+                    if (view instanceof JTextArea) {
+                        ((JTextArea) view).setText(value);
+                    }
+                }
+            }
+            else if (component instanceof JComboBox<?> comboBox) {
+                // Handle JComboBox at index 6
+                comboBox.setSelectedItem(value);
+            }
+            else if (component instanceof JTextComponent) {
+                // Handle other text components (JTextField, JTextArea, etc.)
+                ((JTextComponent) component).setText(value);
+            }
+        }
+    }
+
+    private void populateClaimInfoInPane(ArrayList<String> itemRecord) {
+        System.out.println(itemRecord);
+        for (int i = 0; i < itemRecord.size() && i < claimsFields.size(); i++) {
+            JComponent component = claimsFields.get(i);
+            String value = itemRecord.get(i);
+
+            if (i == 3) {
+                if (component instanceof JScrollPane) {
+                    JScrollPane scrollPane = (JScrollPane) component;
+                    Component view = scrollPane.getViewport().getView();
+                    if (view instanceof JTextArea) {
+                        ((JTextArea) view).setText(value);
+                    }
+                }
+            }
+            else if (component instanceof JComboBox<?> comboBox) {
+                comboBox.setSelectedItem(value);
+            } else if (i == 6 ) {
+                if (value.equals("null")) {
+                    ((JTextComponent) component).setText(null);
+                } else {
+                    ((JTextComponent) component).setText(value);
+                }
+            } else if (component instanceof JTextComponent) {
+                ((JTextComponent) component).setText(value);
+            }
+        }
     }
 }

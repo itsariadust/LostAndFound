@@ -2,8 +2,10 @@ package controllers;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import models.LostItems;
@@ -68,5 +70,20 @@ public class LostItemController {
 
     public static List<LostItems> getAllLostItems() {
         return lostItemsDao.findAll();
+    }
+
+    public static ArrayList<String> getItemById(String id) {
+        Optional<LostItems> record = lostItemsDao.findById(id);
+        ArrayList<String> recordList = new ArrayList<>();
+        LostItems recordObj = record.get();
+        recordList.add(recordObj.getItemName());
+        recordList.add(recordObj.getItemDescription());
+        recordList.add(recordObj.getItemCategory());
+        recordList.add(recordObj.getLocationFound());
+        recordList.add(String.valueOf(recordObj.getDateFound()));
+        recordList.add(recordObj.getFoundBy());
+        recordList.add(recordObj.getStatus());
+        recordList.add(recordObj.getImageUrl());
+        return recordList;
     }
 }

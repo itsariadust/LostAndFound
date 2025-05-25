@@ -3,7 +3,7 @@ package models;
 
 public class LostItems {
 
-  private long itemId;
+  private String itemId;
   private String itemName;
   private String itemCategory;
   private String itemDescription;
@@ -14,11 +14,11 @@ public class LostItems {
   private String status;
 
 
-  public long getItemId() {
+  public String getItemId() {
     return itemId;
   }
 
-  public void setItemId(long itemId) {
+  public void setItemId(String itemId) {
     this.itemId = itemId;
   }
 

@@ -3,13 +3,16 @@ package controllers;
 import io.github.cdimascio.dotenv.Dotenv;
 import models.ClaimWithItemName;
 import models.Claims;
+import models.LostItems;
 import models.dao.ClaimsDao;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.mapper.reflect.BeanMapper;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class ClaimsController {
     static ClaimsDao claimsDao;
@@ -24,6 +27,7 @@ public class ClaimsController {
         Jdbi jdbi = Jdbi.create(dbUrl, dbUser, dbPass);
         jdbi.installPlugin(new SqlObjectPlugin());
         jdbi.registerRowMapper(BeanMapper.factory(Claims.class));
+        jdbi.registerRowMapper(BeanMapper.factory(ClaimWithItemName.class));
         claimsDao = jdbi.onDemand(ClaimsDao.class);
     }
 
@@ -53,11 +57,21 @@ public class ClaimsController {
         return claimsDao.findByFilter(searchText, filter);
     }
 
-    public static List<Claims> getAllClaims() {
-        return claimsDao.findAll();
-    }
-
     public static List<ClaimWithItemName> getAllClaimsWithItemName() {
         return claimsDao.getAllClaimsWithItemNames();
+    }
+
+    public static ArrayList<String> getClaimById(String id) {
+        Optional<ClaimWithItemName> record = claimsDao.findById(id);
+        ArrayList<String> recordList = new ArrayList<>();
+        ClaimWithItemName recordObj = record.get();
+        recordList.add(recordObj.getClaimantName());
+        recordList.add(recordObj.getItemName());
+        recordList.add(String.valueOf(recordObj.getClaimDate()));
+        recordList.add(recordObj.getDescriptionOfProof());
+        recordList.add(recordObj.getStatus());
+        recordList.add(recordObj.getApproverName());
+        recordList.add(String.valueOf(recordObj.getApprovalDate()));
+        return recordList;
     }
 }

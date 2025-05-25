@@ -38,4 +38,11 @@ public interface LostItemsDao {
               AND (ItemName LIKE '%' + :itemName + '%' OR :itemName IS NULL);
             """)
     List<LostItems> findByFilter(@Bind("itemName") String itemName, @Bind("status") String status);
+
+    // Get specific record by ID
+    @SqlQuery("""
+            SELECT * FROM LostItems
+            WHERE ItemID = :itemID
+            """)
+    Optional<LostItems> findById(@Bind("itemID") String itemID);
 }

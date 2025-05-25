@@ -10,7 +10,7 @@ public class Claims {
   private java.sql.Timestamp claimDate;
   private String descriptionOfProof;
   private String status;
-  private long approvedBy;
+  private String approverName;  // new field
   private java.sql.Timestamp approvalDate;
 
 
@@ -77,12 +77,12 @@ public class Claims {
   }
 
 
-  public long getApprovedBy() {
-    return approvedBy;
+  public String getApproverName() {
+    return approverName;
   }
 
-  public void setApprovedBy(long approvedBy) {
-    this.approvedBy = approvedBy;
+  public void setApproverName(String approverName) {
+    this.approverName = approverName;
   }
 
 
