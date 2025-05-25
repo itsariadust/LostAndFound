@@ -709,7 +709,7 @@ public class MainView extends JFrame {
             JComponent component = lostItemsFields.get(i);
             String value = itemRecord.get(i);
 
-            if (i == 3) {
+            if (i == 1) {
                 if (component instanceof JScrollPane) {
                     JScrollPane scrollPane = (JScrollPane) component;
                     Component view = scrollPane.getViewport().getView();
