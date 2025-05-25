@@ -727,6 +727,9 @@ public class MainView extends JFrame {
                 // Handle other text components (JTextField, JTextArea, etc.)
                 ((JTextComponent) component).setText(value);
             }
+        } if (itemRecord.get(7) == null) {
+            imageLabel.setIcon(null);
+            return;
         }
         imageLabel.setIcon(new PathToImageIcon().createImageIcon(itemRecord.get(7)));
     }
